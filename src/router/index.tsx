@@ -32,6 +32,7 @@ import ReportsIndex from '@/pages/reports/ReportsIndex';
 
 // Settings
 import Settings from '@/pages/Settings';
+import TallyIntegration from '@/pages/TallyIntegration';
 
 function AppRouter() {
   return (
@@ -78,6 +79,9 @@ function AppRouter() {
 
           {/* Settings */}
           <Route path="settings" element={<Settings />} />
+
+          {/* Tally Integration */}
+          <Route path="tally" element={<TallyIntegration />} />
         </Route>
       </Routes>
     </BrowserRouter>

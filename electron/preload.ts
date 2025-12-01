@@ -87,11 +87,12 @@ contextBridge.exposeInMainWorld('api', {
     getLedger: (id: number, dateRange?: any) => ipcRenderer.invoke('supplier:getLedger', id, dateRange),
   },
 
-  // Tally API (to be implemented)
+  // Tally API
   tally: {
     importMasters: (filePath: string, options: any) => ipcRenderer.invoke('tally:importMasters', filePath, options),
     exportVouchers: (dateRange: any, options: any) => ipcRenderer.invoke('tally:exportVouchers', dateRange, options),
-    getSyncHistory: () => ipcRenderer.invoke('tally:getSyncHistory'),
+    getSyncHistory: (limit?: number) => ipcRenderer.invoke('tally:getSyncHistory', limit),
+    getSyncStats: () => ipcRenderer.invoke('tally:getSyncStats'),
   },
 
   // Reports API (to be implemented)
