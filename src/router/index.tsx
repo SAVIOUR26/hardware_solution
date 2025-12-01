@@ -9,6 +9,11 @@ import ViewSale from '@/pages/sales/ViewSale';
 import NotTakenReport from '@/pages/sales/NotTakenReport';
 import Quotations from '@/pages/sales/Quotations';
 
+// Returns
+import ReturnsIndex from '@/pages/sales/ReturnsIndex';
+import NewReturn from '@/pages/sales/NewReturn';
+import ViewReturn from '@/pages/sales/ViewReturn';
+
 // Purchase
 import PurchaseIndex from '@/pages/purchase/PurchaseIndex';
 import NewPurchase from '@/pages/purchase/NewPurchase';
@@ -43,6 +48,12 @@ function AppRouter() {
             <Route path=":id" element={<ViewSale />} />
             <Route path="not-taken" element={<NotTakenReport />} />
             <Route path="quotations" element={<Quotations />} />
+            {/* Returns Routes */}
+            <Route path="returns">
+              <Route index element={<ReturnsIndex />} />
+              <Route path="new" element={<NewReturn />} />
+              <Route path=":id" element={<ViewReturn />} />
+            </Route>
           </Route>
 
           {/* Purchase Routes */}

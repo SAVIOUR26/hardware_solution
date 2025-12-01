@@ -10,6 +10,7 @@ import {
   Package,
   Printer,
   PackageX,
+  RotateCcw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -162,6 +163,16 @@ function ViewSale() {
             <Printer className="w-4 h-4" />
             Print Invoice
           </button>
+          {!invoice.is_quotation && (
+            <button
+              onClick={() => navigate(`/sales/returns/new?invoiceId=${invoice.id}`)}
+              className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/10 transition-colors flex items-center gap-2"
+              title="Create return for this invoice"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Create Return
+            </button>
+          )}
         </div>
       </div>
 
