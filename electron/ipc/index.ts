@@ -13,6 +13,7 @@ import { registerDashboardHandlers } from './dashboard.handlers';
 import { registerPrinterHandlers } from './printer.handlers';
 import { registerReportsHandlers } from './reports.handlers';
 import { registerSettingsHandlers } from './settings.handlers';
+import { registerReturnsHandlers } from './returns.handlers';
 
 /**
  * Register all IPC handlers
@@ -31,6 +32,7 @@ export function registerAllHandlers() {
   registerPrinterHandlers();
   registerReportsHandlers();
   registerSettingsHandlers();
+  registerReturnsHandlers();
 
   // Additional handlers will be registered here:
   // registerPaymentHandlers();

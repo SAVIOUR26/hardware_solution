@@ -61,6 +61,16 @@ contextBridge.exposeInMainWorld('api', {
     list: (filters?: any) => ipcRenderer.invoke('delivery:list', filters),
   },
 
+  // Returns API
+  returns: {
+    create: (data: any) => ipcRenderer.invoke('returns:create', data),
+    get: (id: number) => ipcRenderer.invoke('returns:get', id),
+    list: (filters?: any) => ipcRenderer.invoke('returns:list', filters),
+    updateRefundStatus: (params: any) => ipcRenderer.invoke('returns:updateRefundStatus', params),
+    getReturnableItems: (invoiceId: number) => ipcRenderer.invoke('returns:getReturnableItems', invoiceId),
+    getInvoiceReturns: (invoiceId: number) => ipcRenderer.invoke('returns:getInvoiceReturns', invoiceId),
+  },
+
   // Dashboard API
   dashboard: {
     getStats: () => ipcRenderer.invoke('dashboard:getStats'),

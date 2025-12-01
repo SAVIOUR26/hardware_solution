@@ -24,18 +24,16 @@ const migrations: Migration[] = [
       console.log('Migration 1: Initial schema already applied');
     },
   },
-  // Future migrations will be added here
-  // Example:
-  // {
-  //   version: 2,
-  //   name: 'Add barcode scanner support',
-  //   up: (db: Database.Database) => {
-  //     db.exec(`
-  //       ALTER TABLE products ADD COLUMN barcode_prefix TEXT;
-  //       CREATE INDEX idx_products_barcode_prefix ON products(barcode_prefix);
-  //     `);
-  //   },
-  // },
+  {
+    version: 2,
+    name: 'Add sales returns',
+    up: (db: Database.Database) => {
+      const migrationPath = path.join(__dirname, 'migrations', 'add_sales_returns.sql');
+      const migrationSQL = fs.readFileSync(migrationPath, 'utf-8');
+      db.exec(migrationSQL);
+      console.log('Migration 2: Sales returns tables created');
+    },
+  },
 ];
 
 /**
