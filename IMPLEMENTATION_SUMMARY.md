@@ -4,8 +4,8 @@
 
 ### Features Requested by Client
 1. ✅ **Delete functionality for items** - ALREADY IMPLEMENTED
-2. ✅ **Sales return functionality** - BACKEND COMPLETE
-3. 🔄 **Tally XML Import/Export** - IN PROGRESS
+2. ✅ **Sales return functionality** - COMPLETE
+3. ✅ **Tally XML Import/Export** - COMPLETE
 
 ---
 
@@ -95,32 +95,114 @@ Both sales and purchase forms already have delete functionality for items:
 
 ---
 
-## 3. Tally XML Import/Export 🔄 IN PROGRESS
+## 3. Tally XML Import/Export ✅ COMPLETE
 
-### Research Completed ✅
+### Backend Services Implemented
 
-**Tally XML Format Analysis:**
-- Master XML file is UTF-16 encoded (14MB, 144k lines)
-- Contains: CURRENCY, STATE, GROUP, LEDGER, STOCKITEM masters
-- Structure: ENVELOPE → HEADER → BODY → TALLYMESSAGE
+**File:** `electron/services/tally.service.ts`
 
-**Key XML Tags Identified:**
-- `<LEDGER>` - Customers/Suppliers
-- `<STOCKITEM>` - Products
-- `<GROUP>` - Account groups
-- `<VOUCHER>` - Sales/Purchase transactions
+**Key Functions:**
+1. `parseTallyXML()` - XML parser with UTF-16 encoding support
+2. `importTallyMasters()` - Import customers, suppliers, and products from Tally XML
+   - Imports Ledgers as Customers/Suppliers based on parent group
+   - Imports StockItems as Products with opening stock
+   - Smart duplicate detection using GUID and name matching
+   - Updates existing records or creates new ones
+   - Tracks sync history with statistics
 
-**Integration Patterns:**
-- Import uses `<TALLYREQUEST>Import</TALLYREQUEST>`
-- Export uses `<TALLYREQUEST>Export</TALLYREQUEST>`
-- Masters: Ledgers, Stock Items, Groups
-- Vouchers: Sales, Purchase, Payment, Receipt
+3. `exportTallyVouchers()` - Export sales and purchase transactions
+   - Generates Tally-compatible XML format
+   - Supports date range filtering
+   - Multi-currency support
+   - Proper voucher structure with ledger entries and inventory details
+   - GUID generation for each voucher
 
-**Best Practices:**
-- DupModify - Update existing records
-- DupIgnoreCombine - Ignore duplicates
-- DupCombine - Combine balances
-- XML must be well-formed with proper namespace
+4. `getTallySyncHistory()` - Retrieve import/export history
+5. `getTallySyncStats()` - Get statistics about synced data
+
+**Technical Details:**
+- UTF-16 encoding handled with `fs.readFileSync(filePath, 'utf16le')`
+- Uses `fast-xml-parser` library for XML parsing
+- Ledger categorization: "Sundry Debtor" → Customer, "Sundry Creditor" → Supplier
+- Opening balances imported for both ledgers and stock items
+- Transaction-safe with rollback on errors
+
+### IPC Handlers
+**File:** `electron/ipc/tally.handlers.ts`
+- File picker dialogs for import/export operations
+- Comprehensive error handling
+- Success/failure response format
+
+**API Methods:**
+- `tally:importMasters` - Import Tally masters (Ledgers, StockItems)
+- `tally:exportVouchers` - Export sales/purchase vouchers
+- `tally:getSyncHistory` - Get sync history
+- `tally:getSyncStats` - Get sync statistics
+
+### Frontend UI
+**File:** `src/pages/TallyIntegration.tsx`
+
+**Features:**
+- **Import Masters Tab:**
+  - File picker for Tally XML files
+  - Import options: Customers, Suppliers, Products
+  - Update existing records option
+  - Opening balances import
+  - Real-time progress and statistics display
+
+- **Export Vouchers Tab:**
+  - Date range selection
+  - Export type: Sales, Purchase, or Both
+  - File save dialog integration
+  - Multi-currency support
+  - Export statistics
+
+- **Sync History Tab:**
+  - Complete sync history table
+  - Operation type, date, status display
+  - Detailed statistics (created/updated counts)
+  - Error tracking and display
+
+### Integration
+- ✅ IPC handlers registered in `electron/ipc/index.ts`
+- ✅ API exposed in `electron/preload.ts`
+- ✅ Route added to `src/router/index.tsx` at `/tally`
+- ✅ TypeScript compilation verified
+
+### XML Format Support
+**Import Structure:**
+```
+ENVELOPE → HEADER → BODY → IMPORTDATA → REQUESTDATA → TALLYMESSAGE
+  ├── LEDGER (Customers/Suppliers)
+  │   ├── NAME, PARENT, GUID
+  │   ├── OPENINGBALANCE
+  │   └── Contact details
+  └── STOCKITEM (Products)
+      ├── NAME, CATEGORY, GUID
+      ├── OPENINGBALANCE, OPENINGVALUE
+      └── Pricing and unit information
+```
+
+**Export Structure:**
+```xml
+<ENVELOPE>
+  <HEADER><VERSION>1</VERSION></HEADER>
+  <BODY>
+    <DATA>
+      <TALLYMESSAGE>
+        <VOUCHER VCHTYPE="Sales" ACTION="Create">
+          <DATE>20241201</DATE>
+          <VOUCHERTYPENAME>Sales</VOUCHERTYPENAME>
+          <VOUCHERNUMBER>INV-001</VOUCHERNUMBER>
+          <PARTYNAME>Customer Name</PARTYNAME>
+          <ALLLEDGERENTRIES.LIST>...</ALLLEDGERENTRIES.LIST>
+          <ALLINVENTORYENTRIES.LIST>...</ALLINVENTORYENTRIES.LIST>
+        </VOUCHER>
+      </TALLYMESSAGE>
+    </DATA>
+  </BODY>
+</ENVELOPE>
+```
 
 ### Sources Referenced:
 1. [Tally XML Request/Response Formats](https://help.tallysolutions.com/case-study-1/)
@@ -129,23 +211,6 @@ Both sales and purchase forms already have delete functionality for items:
 4. [Import Data into TallyPrime](https://help.tallysolutions.com/import-data-in-tally/)
 5. [Sample XML](https://help.tallysolutions.com/sample-xml/)
 6. [Understanding Tally XML Format](https://www.markitsolutions.in/blog-details/understanding-tally-xml-format)
-
-### Next Steps for Tally Integration:
-1. **Create Tally Service** (`electron/services/tally.service.ts`)
-   - XML Parser (handle UTF-16 encoding)
-   - Import Masters function (Ledgers → Customers/Suppliers, StockItems → Products)
-   - Export Vouchers function (Sales → Sales Voucher, Purchase → Purchase Voucher)
-   - Mapping logic (Tally fields → App fields)
-
-2. **Create Tally Handlers** (`electron/ipc/tally.handlers.ts`)
-   - `tally:importMasters`
-   - `tally:exportVouchers`
-   - `tally:getSyncHistory`
-
-3. **Create Tally UI Page**
-   - Import section (file picker, preview, map fields)
-   - Export section (date range, filters, download)
-   - Sync history log
 
 ---
 
@@ -157,14 +222,29 @@ Both sales and purchase forms already have delete functionality for items:
 
 ### Backend Services
 - ✅ `electron/services/returns.service.ts` (NEW)
+- ✅ `electron/services/tally.service.ts` (NEW)
 
 ### IPC Layer
 - ✅ `electron/ipc/returns.handlers.ts` (NEW)
-- ✅ `electron/ipc/index.ts` (MODIFIED - registered returns handlers)
+- ✅ `electron/ipc/tally.handlers.ts` (NEW)
+- ✅ `electron/ipc/index.ts` (MODIFIED - registered returns and tally handlers)
 
 ### Preload/Types
-- ✅ `electron/preload.ts` (MODIFIED - exposed returns API)
+- ✅ `electron/preload.ts` (MODIFIED - exposed returns and tally APIs)
 - ✅ `src/vite-env.d.ts` (MODIFIED - added returns types)
+
+### Frontend Pages
+- ✅ `src/pages/sales/ReturnsIndex.tsx` (NEW)
+- ✅ `src/pages/sales/NewReturn.tsx` (NEW)
+- ✅ `src/pages/sales/ViewReturn.tsx` (NEW)
+- ✅ `src/pages/sales/ViewSale.tsx` (MODIFIED - added "Create Return" button)
+- ✅ `src/pages/TallyIntegration.tsx` (NEW)
+
+### Types
+- ✅ `src/types/returns.types.ts` (NEW)
+
+### Router
+- ✅ `src/router/index.tsx` (MODIFIED - added returns and tally routes)
 
 ### Documentation
 - ✅ `IMPLEMENTATION_SUMMARY.md` (NEW - this file)
