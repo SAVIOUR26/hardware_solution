@@ -14,7 +14,6 @@ files:
 win:
   target:
     - nsis
-  icon: build/icon.ico
   artifactName: ${productName}-${version}-Setup.${ext}
 
 nsis:
@@ -25,8 +24,6 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: ${productName}
-  installerIcon: build/icon.ico
-  uninstallerIcon: build/icon.ico
 
 publish:
   provider: github
