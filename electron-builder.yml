@@ -12,6 +12,10 @@ files:
   - electron/database/**/*.sql
   - package.json
 
+asarUnpack:
+  - dist/**/*
+  - electron/database/**/*.sql
+
 win:
   target:
     - target: nsis

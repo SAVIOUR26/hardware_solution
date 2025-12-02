@@ -63,7 +63,35 @@ const createWindow = () => {
     // Open DevTools in development
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    // Try multiple possible paths for the frontend
+    const possibleHtmlPaths = [
+      path.join(__dirname, '../dist/index.html'),
+      path.join(process.resourcesPath, 'dist/index.html'),
+      path.join(app.getAppPath(), 'dist/index.html'),
+      path.join(__dirname, '../../dist/index.html'),
+    ];
+
+    let htmlPath: string | null = null;
+
+    for (const testPath of possibleHtmlPaths) {
+      log('Checking for index.html at:', testPath);
+      if (fs.existsSync(testPath)) {
+        htmlPath = testPath;
+        log('Found index.html at:', htmlPath);
+        break;
+      }
+    }
+
+    if (htmlPath) {
+      mainWindow.loadFile(htmlPath);
+    } else {
+      log('ERROR: Could not find index.html. Tried paths:', possibleHtmlPaths);
+      showErrorDialog(
+        'Frontend Error',
+        'Could not find the application UI files. The build may be incomplete.',
+        new Error(`index.html not found. Tried: ${possibleHtmlPaths.join(', ')}`)
+      );
+    }
   }
 
   // Handle window close
