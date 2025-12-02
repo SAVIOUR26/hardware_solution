@@ -28,8 +28,32 @@ const migrations: Migration[] = [
     version: 2,
     name: 'Add sales returns',
     up: (db: Database.Database) => {
-      const migrationPath = path.join(__dirname, 'migrations', 'add_sales_returns.sql');
-      const migrationSQL = fs.readFileSync(migrationPath, 'utf-8');
+      // Try multiple possible paths for migration file
+      const possiblePaths = [
+        // Development path
+        path.join(__dirname, 'migrations', 'add_sales_returns.sql'),
+        // Production path (relative to dist-electron)
+        path.join(__dirname, '..', 'electron', 'database', 'migrations', 'add_sales_returns.sql'),
+        // Production path (from app root)
+        path.join(process.resourcesPath, 'electron', 'database', 'migrations', 'add_sales_returns.sql'),
+        // Alternative production path
+        path.join(app.getAppPath(), 'electron', 'database', 'migrations', 'add_sales_returns.sql'),
+      ];
+
+      let migrationSQL: string | null = null;
+
+      for (const migrationPath of possiblePaths) {
+        if (fs.existsSync(migrationPath)) {
+          console.log('Found migration at:', migrationPath);
+          migrationSQL = fs.readFileSync(migrationPath, 'utf-8');
+          break;
+        }
+      }
+
+      if (!migrationSQL) {
+        throw new Error(`Migration file not found. Tried: ${possiblePaths.join(', ')}`);
+      }
+
       db.exec(migrationSQL);
       console.log('Migration 2: Sales returns tables created');
     },

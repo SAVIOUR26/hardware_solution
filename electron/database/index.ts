@@ -54,28 +54,42 @@ export function getDatabase(): Database.Database {
  */
 function initializeSchema(database: Database.Database): void {
   try {
-    // Read schema file
-    const schemaPath = path.join(__dirname, 'schema.sql');
+    // Try multiple possible paths for schema file
+    const possiblePaths = [
+      // Development path
+      path.join(__dirname, 'schema.sql'),
+      // Production path (relative to dist-electron)
+      path.join(__dirname, '..', 'electron', 'database', 'schema.sql'),
+      // Production path (from app root)
+      path.join(process.resourcesPath, 'electron', 'database', 'schema.sql'),
+      // Alternative production path
+      path.join(app.getAppPath(), 'electron', 'database', 'schema.sql'),
+    ];
 
-    let schemaSQL: string;
+    let schemaSQL: string | null = null;
+    let usedPath: string | null = null;
 
-    // Handle both development and production paths
-    if (fs.existsSync(schemaPath)) {
-      schemaSQL = fs.readFileSync(schemaPath, 'utf-8');
-    } else {
-      // Try alternative path for production build
-      const altSchemaPath = path.join(process.resourcesPath, 'database', 'schema.sql');
-      if (fs.existsSync(altSchemaPath)) {
-        schemaSQL = fs.readFileSync(altSchemaPath, 'utf-8');
+    for (const schemaPath of possiblePaths) {
+      if (fs.existsSync(schemaPath)) {
+        console.log('Found schema at:', schemaPath);
+        schemaSQL = fs.readFileSync(schemaPath, 'utf-8');
+        usedPath = schemaPath;
+        break;
       } else {
-        throw new Error('Schema file not found');
+        console.log('Schema not found at:', schemaPath);
       }
+    }
+
+    if (!schemaSQL) {
+      const errorMsg = `Schema file not found. Tried paths:\n${possiblePaths.join('\n')}`;
+      console.error(errorMsg);
+      throw new Error(errorMsg);
     }
 
     // Execute schema (Better-SQLite3 supports multiple statements)
     database.exec(schemaSQL);
 
-    console.log('Schema initialized successfully');
+    console.log('Schema initialized successfully from:', usedPath);
   } catch (error) {
     console.error('Failed to initialize schema:', error);
     throw error;

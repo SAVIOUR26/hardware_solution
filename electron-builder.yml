@@ -9,6 +9,7 @@ directories:
 files:
   - dist/**/*
   - dist-electron/**/*
+  - electron/database/**/*.sql
   - package.json
 
 win:
