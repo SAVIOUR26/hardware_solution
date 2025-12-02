@@ -13,8 +13,13 @@ files:
 
 win:
   target:
-    - nsis
-  artifactName: ${productName}-${version}-Setup.${ext}
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  artifactName: ${productName}-${version}-${os}-${arch}.${ext}
 
 nsis:
   oneClick: false
